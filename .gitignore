@@ -1,0 +1,7 @@
+# Host machine directory for persistent storage, bind-mounted from Docker
+/data
+
+# Configuration files for environment variables
+postgres.env
+pgadmin4.env
+

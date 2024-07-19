@@ -1,0 +1,35 @@
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    env_file:
+      - postgres.env
+    volumes:
+      - postgres_bind_volume:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - postgres_network
+  pgadmin4:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    env_file:
+      - pgadmin4.env
+    ports:
+      - 16543:80
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    networks:
+      - postgres_network
+
+volumes:
+  postgres_bind_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+
+networks:
+  postgres_network:
+    driver: bridge
