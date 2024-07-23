@@ -1,3 +1,5 @@
+# Note: The pgadmin4 and networks services block is commented out. Uncomment it to enable the services.
+
 services:
   postgres:
     container_name: postgres_container
@@ -8,19 +10,20 @@ services:
       - postgres_bind_volume:/var/lib/postgresql/data
     ports:
       - 5432:5432
-    networks:
-      - postgres_network
-  pgadmin4:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4
-    env_file:
-      - pgadmin4.env
-    ports:
-      - 16543:80
-    volumes:
-      - ./servers.json:/pgadmin4/servers.json
-    networks:
-      - postgres_network
+  #   networks:
+  #     - postgres_network
+  # pgadmin4:
+  #   container_name: pgadmin4_container
+  #   image: dpage/pgadmin4
+  #   env_file:
+  #     - pgadmin4.env
+  #   ports:
+  #     - 16543:80
+  #   volumes:
+  #     - ./servers.json:/pgadmin4/servers.json
+  #   networks:
+  #     - postgres_network
+
 
 volumes:
   postgres_bind_volume:
@@ -30,6 +33,6 @@ volumes:
       o: bind
       device: ./data
 
-networks:
-  postgres_network:
-    driver: bridge
+# networks:
+#   postgres_network:
+#     driver: bridge
