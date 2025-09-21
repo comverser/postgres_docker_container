@@ -47,6 +47,13 @@ just psql
 just env-check
 ```
 
+### Database Connection
+
+With the default `postgres.env.example` configuration:
+```
+postgresql://root:postgres@localhost:5432/postgres
+```
+
 ### Shutdown and Cleanup
 
 To stop and remove the containers:
