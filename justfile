@@ -34,4 +34,4 @@ logs:
 
 # Connect to PostgreSQL
 psql:
-    docker exec -it postgres_container psql -U postgres
+    docker exec -it postgres_container psql -U root -d postgres
