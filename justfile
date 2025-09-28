@@ -35,3 +35,18 @@ logs:
 # Connect to PostgreSQL
 psql:
     docker exec -it postgres_container psql -U root -d postgres
+
+# Nuclear clean - removes ALL Docker resources (containers, images, volumes, networks)
+nuke:
+    @echo "WARNING: This will remove ALL Docker containers, images, volumes, and networks!"
+    @echo "Press Ctrl+C to cancel, or wait 5 seconds to continue..."
+    @sleep 5
+    docker compose down -v --remove-orphans
+    docker stop $(docker ps -aq) 2>/dev/null || true
+    docker rm $(docker ps -aq) 2>/dev/null || true
+    docker rmi $(docker images -q) 2>/dev/null || true
+    docker volume rm $(docker volume ls -q) 2>/dev/null || true
+    docker network prune -f
+    docker system prune -af --volumes
+    sudo rm -rf ./data
+    @echo "All Docker resources have been removed"
