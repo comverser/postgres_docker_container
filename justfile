@@ -42,16 +42,22 @@ backup:
     @docker compose exec -T postgres pg_dumpall -U postgres > backup_$(date +%Y%m%d_%H%M%S).sql
 
 clean:
-    @read -p "⚠ Delete all data? (yes): " c && [ "$$c" = "yes" ] || exit 1
-    @docker compose down -v && rm -rf data
+    #!/usr/bin/env bash
+    set -euo pipefail
+    read -p "⚠ Delete all data? (yes): " c
+    [ "$c" = "yes" ] || exit 1
+    docker compose down -v && rm -rf data
 
 nuke:
-    @read -p "⚠ Remove ALL Docker resources? (yes): " c && [ "$$c" = "yes" ] || exit 1
-    @docker compose down -v 2>/dev/null || true
-    @docker stop $$(docker ps -aq) 2>/dev/null || true
-    @docker rm $$(docker ps -aq) 2>/dev/null || true
-    @docker volume rm $$(docker volume ls -q) 2>/dev/null || true
-    @docker network rm $$(docker network ls -q) 2>/dev/null || true
-    @docker rmi $$(docker images -aq) 2>/dev/null || true
-    @docker system prune -af --volumes
-    @rm -rf data
+    #!/usr/bin/env bash
+    set -euo pipefail
+    read -p "⚠ Remove ALL Docker resources? (yes): " c
+    [ "$c" = "yes" ] || exit 1
+    docker compose down -v 2>/dev/null || true
+    docker stop $(docker ps -aq) 2>/dev/null || true
+    docker rm $(docker ps -aq) 2>/dev/null || true
+    docker volume rm $(docker volume ls -q) 2>/dev/null || true
+    docker network rm $(docker network ls -q) 2>/dev/null || true
+    docker rmi $(docker images -aq) 2>/dev/null || true
+    docker system prune -af --volumes
+    rm -rf data
