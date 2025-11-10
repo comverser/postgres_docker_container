@@ -1,52 +1,57 @@
-# Start PostgreSQL container
-up: init
-    docker compose up -d
+default:
+    @git pull --rebase --autostash
+    @just setup && just up
 
-# Stop PostgreSQL container
+setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [ ! -f postgres.env ] && cp postgres.env.example postgres.env || true
+    [ ! -f pgadmin4.env ] && cp pgadmin4.env.example pgadmin4.env || true
+    chmod 600 postgres.env pgadmin4.env 2>/dev/null || true
+    . ./postgres.env
+    {
+        printf '{\n'
+        printf '  "Servers": {\n'
+        printf '    "1": {\n'
+        printf '      "Name": "postgres_server",\n'
+        printf '      "Group": "Servers",\n'
+        printf '      "Host": "postgres",\n'
+        printf '      "Port": 5432,\n'
+        printf '      "MaintenanceDB": "%s",\n' "$POSTGRES_DB"
+        printf '      "Username": "%s",\n' "$POSTGRES_USER"
+        printf '      "SSLMode": "prefer"\n'
+        printf '    }\n'
+        printf '  }\n'
+        printf '}\n'
+    } > servers.json
+
+up:
+    @mkdir -p data
+    @docker compose up -d
+
 down:
-    docker compose down
+    @docker compose down
 
-# Initialize data directory
-init:
-    @mkdir -p ./data
-    @echo "Data directory created at ./data"
-
-# Clean up everything (volumes and data)
-clean:
-    docker compose down -v
-    sudo rm -rf ./data
-
-# Clean up everything including images
-clean-all:
-    docker compose down --rmi all --volumes
-    sudo rm -rf ./data
-
-# Check environment variables in containers
-env-check:
-    @echo "PostgreSQL container environment:"
-    docker exec postgres_container env
-    @echo "\npgAdmin4 container environment (if running):"
-    -docker exec pgadmin4_container env 2>/dev/null || echo "pgAdmin4 container not running"
-
-# Show logs
 logs:
-    docker compose logs -f
+    @docker compose logs -f
 
-# Connect to PostgreSQL
 psql:
-    docker exec -it postgres_container psql -U root -d postgres
+    @docker compose exec postgres psql -U postgres -d postgres
 
-# Nuclear clean - removes ALL Docker resources (containers, images, volumes, networks)
+backup:
+    @docker compose exec -T postgres pg_dumpall -U postgres > backup_$(date +%Y%m%d_%H%M%S).sql
+
+clean:
+    @read -p "⚠ Delete all data? (yes): " c && [ "$$c" = "yes" ] || exit 1
+    @docker compose down -v && rm -rf data
+
 nuke:
-    @echo "WARNING: This will remove ALL Docker containers, images, volumes, and networks!"
-    @echo "Press Ctrl+C to cancel, or wait 5 seconds to continue..."
-    @sleep 5
-    docker compose down -v --remove-orphans
-    docker stop $(docker ps -aq) 2>/dev/null || true
-    docker rm $(docker ps -aq) 2>/dev/null || true
-    docker rmi $(docker images -q) 2>/dev/null || true
-    docker volume rm $(docker volume ls -q) 2>/dev/null || true
-    docker network prune -f
-    docker system prune -af --volumes
-    sudo rm -rf ./data
-    @echo "All Docker resources have been removed"
+    @read -p "⚠ Remove ALL Docker resources? (yes): " c && [ "$$c" = "yes" ] || exit 1
+    @docker compose down -v 2>/dev/null || true
+    @docker stop $$(docker ps -aq) 2>/dev/null || true
+    @docker rm $$(docker ps -aq) 2>/dev/null || true
+    @docker volume rm $$(docker volume ls -q) 2>/dev/null || true
+    @docker network rm $$(docker network ls -q) 2>/dev/null || true
+    @docker rmi $$(docker images -aq) 2>/dev/null || true
+    @docker system prune -af --volumes
+    @rm -rf data
