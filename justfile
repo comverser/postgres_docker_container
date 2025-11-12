@@ -8,6 +8,7 @@ setup:
     [ ! -f postgres.env ] && cp postgres.env.example postgres.env || true
     [ ! -f pgadmin4.env ] && cp pgadmin4.env.example pgadmin4.env || true
     chmod 600 postgres.env pgadmin4.env 2>/dev/null || true
+    [ -d servers.json ] && sudo rm -rf servers.json || true
     . ./postgres.env
     {
         printf '{\n'
