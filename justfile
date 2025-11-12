@@ -46,7 +46,7 @@ clean:
     set -euo pipefail
     read -p "⚠ Delete all data? (yes): " c
     [ "$c" = "yes" ] || exit 1
-    docker compose down -v && rm -rf data
+    docker compose down -v && sudo rm -rf data
 
 nuke:
     #!/usr/bin/env bash
@@ -60,4 +60,4 @@ nuke:
     docker network rm $(docker network ls -q) 2>/dev/null || true
     docker rmi $(docker images -aq) 2>/dev/null || true
     docker system prune -af --volumes
-    rm -rf data
+    sudo rm -rf data
